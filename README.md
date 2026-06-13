@@ -30,14 +30,24 @@ Every task you hand a coding agent starts with the same hidden step — *find th
 Here's what that step costs **with vs without agentmap**, across **7 real agent tasks on 3 public
 repos**. Every figure is captured tool output, reproducible at pinned shas (`node benchmark/bench.mjs <repo>`):
 
-| Lookup the agent runs first | [ai-chatbot](https://github.com/vercel/ai-chatbot) | [zod](https://github.com/colinhacks/zod) | [taxonomy](https://github.com/shadcn-ui/taxonomy) |
-|------|:--:|:--:|:--:|
-| **Map the whole repo** | 99.3% | 99.8% | 98.1% |
-| **Blast radius** | 99.2% | 98.8% | 98.5% |
-| **Reuse check** | 99.9% | 97.4% | 99.3% |
-| **Total — all 7 tasks** | **98.3%** | **99.2%** | **96.0%** |
+<table width="100%">
+<thead>
+<tr>
+<th align="left">Lookup the agent runs first</th>
+<th align="center"><a href="https://github.com/vercel/ai-chatbot">ai-chatbot</a></th>
+<th align="center"><a href="https://github.com/colinhacks/zod">zod</a></th>
+<th align="center"><a href="https://github.com/shadcn-ui/taxonomy">taxonomy</a></th>
+</tr>
+</thead>
+<tbody>
+<tr><td align="left"><b>Map the whole repo</b></td><td align="center">99.3% saved</td><td align="center">99.8% saved</td><td align="center">98.1% saved</td></tr>
+<tr><td align="left"><b>Blast radius</b></td><td align="center">99.2% saved</td><td align="center">98.8% saved</td><td align="center">98.5% saved</td></tr>
+<tr><td align="left"><b>Reuse check</b></td><td align="center">99.9% saved</td><td align="center">97.4% saved</td><td align="center">99.3% saved</td></tr>
+<tr><td align="left"><b>Total — all 7 tasks</b></td><td align="center"><b>98.3% saved</b></td><td align="center"><b>99.2% saved</b></td><td align="center"><b>96.0% saved</b></td></tr>
+</tbody>
+</table>
 
-<sub>**% of tokens saved** vs the agent reading raw files. *Blast radius* = what breaks if you touch a file · *Reuse check* = does it already exist before you build it.</sub>
+<sub>Tokens saved vs the agent reading raw files. <i>Blast radius</i> = what breaks if you touch a file · <i>Reuse check</i> = does it already exist before you build it.</sub>
 
 In raw terms that's **25–124× fewer tokens** overall — up to **646×** on a whole-repo map and
 **776×** on a reuse-before-rebuild check, the exact lookups an agent runs before every feature or bug fix.
