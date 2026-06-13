@@ -6,12 +6,16 @@
 
 **The repo map your coding agent is _forced_ to use — ~98% fewer tokens to understand your TS/JS codebase.**
 
-A queryable, ranked code-relationship map for TypeScript/JavaScript repos that answers
-"understand the codebase" questions in **~98% fewer tokens on average** (up to **99.9%
-per task**) vs reading raw files. Personalized PageRank importance, Aider-style symbol
-ranking, a token-budgeted digest, and a single `--any` router (file → symbol → feature →
-live git-grep) — wired straight into the agent loop so it actually gets used, not just
-published.
+Your AI coding agent doesn't actually *know* your codebase. Every session it re-learns it
+from scratch — opening files and running grep after grep just to figure out what connects to
+what, burning thousands of tokens (and your money) before it writes a single line. agentmap
+hands it the answer instead: a ranked map of your whole repo it can query in one shot.
+
+The payoff: it answers "understand the codebase" questions in **~98% fewer tokens on average**
+(up to **99.9% per task**) than reading raw files. Under the hood — personalized PageRank
+importance, Aider-style symbol ranking, a token-budgeted digest, and a single `--any` router
+(file → symbol → feature → live git-grep) — all wired straight into the agent loop so it
+actually gets used, not just published.
 
 [![npm](https://img.shields.io/npm/v/@raymondchins/agentmap)](https://www.npmjs.com/package/@raymondchins/agentmap)
 [![CI](https://github.com/raymondchins/agentmap/actions/workflows/ci.yml/badge.svg)](https://github.com/raymondchins/agentmap/actions/workflows/ci.yml)
@@ -25,11 +29,13 @@ published.
 
 ## Why it's different
 
-Most "repo context" tools are one-shot: they pack the repository (or a slice of it) into a
-prompt and stop there. agentmap is a **queryable, ranked, and self-refreshing** map that an
-agent can interrogate flag-by-flag — and, crucially, is **wired into the agent loop** via a
-post-commit auto-refresh and a `PreToolUse` hook that nudges the agent to use the map
-*before* it falls back to serial grep.
+Most "repo context" tools are a photocopy: they dump your repository (or a slice of it) into
+the prompt once and walk away. The copy goes stale the moment you edit a file, and nothing
+makes the agent actually read it.
+
+agentmap is the opposite — a **queryable, ranked, self-refreshing** map the agent interrogates
+flag-by-flag, that **rebuilds itself on every commit**, and that a `PreToolUse` hook steers the
+agent toward *before* it falls back to serial grep.
 
 | | **agentmap** | Aider repo map | RepoMapper | Repomix | code2prompt |
 | --- | --- | --- | --- | --- | --- |
@@ -49,9 +55,12 @@ and it's a **file-level import graph**, not a full call-site/reference resolver 
 
 ## The agent loop (the actual point)
 
-A repo map only helps if the agent uses it. agentmap ships two hooks (in [`./hooks/`](./hooks/))
-that close the loop: the map refreshes itself after every commit, and the agent gets nudged
-to query the map before it serial-greps.
+Here's the quiet failure of every other repo-map tool: it builds a beautiful map, and then the
+agent forgets it exists and greps anyway. A map the agent doesn't open is just dead weight.
+
+agentmap closes that loop. Two hooks (in [`./hooks/`](./hooks/)) do the work: the map
+**refreshes itself after every commit**, and the agent gets **nudged to query it before it
+serial-greps**. You wire it once — then it stays current on its own, and stays used.
 
 ### 1. Auto-refresh on commit
 
@@ -113,6 +122,11 @@ agent is steered to it the moment it reaches for a dependency-shaped grep.
 
 ## Benchmark
 
+What does "~98% fewer tokens" actually buy you? Your agent gets the same understanding of a
+codebase for a tiny fraction of the context it'd normally burn opening and grepping files — so
+runs are cheaper, answers come back faster, and far more of the context window is left for the
+real work.
+
 Measured across **7 agent tasks on 3 real public repos** — reproducible with `node benchmark/bench.mjs <repo>`:
 
 | Repo | Files | Tokens saved |
@@ -159,8 +173,9 @@ agentmap: 154 files | 4 features | top hub: lib/utils.ts (deg 52, pr 0.105171)
 
 ## The `--any` router
 
-One flag, no flag-picking. `--any <query>` resolves your query through a cascade and
-returns the first layer that hits:
+Don't want to learn eight flags? You don't have to. Throw anything at `--any` — a filename, a
+function, a feature, even a raw string — and it figures out what you meant, returning the first
+layer that hits:
 
 ```
 --any <query>
