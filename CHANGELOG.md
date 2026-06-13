@@ -3,6 +3,16 @@
 All notable changes to agentmap are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] - 2026-06-13
+
+### Changed
+- **License simplified to MIT-only.** Removed `LICENSE-APACHE` from the repo and
+  the npm tarball. agentmap's PageRank / symbol ranking is an independent
+  JavaScript reimplementation of a public algorithm (Aider calls `networkx`; no
+  Aider source is copied), so it is not a derivative work and carries no
+  Apache-2.0 obligation. Aider remains credited in `NOTICE` and the README as
+  the origin of the ranking approach. Fixes GitHub showing an "Unknown" license.
+
 ## [0.2.0] - 2026-06-13
 
 ### Added
@@ -44,4 +54,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   enumeration (replacing an expensive full-tree FS glob) make a full build net faster
   than v0.1.0 while indexing the same-or-more files.
 
+[0.2.1]: https://github.com/raymondchins/agentmap/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/raymondchins/agentmap/compare/v0.1.0...v0.2.0

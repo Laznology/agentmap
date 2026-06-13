@@ -5,7 +5,7 @@
 //
 //  A ts-morph code-relationship map for TypeScript/JavaScript repos. Unlike
 //  one-shot "pack the repo into a prompt" tools, this is a QUERYABLE, RANKED
-//  map: PageRank importance (ported from Aider's repo map), Aider-style
+//  map: PageRank importance (approach from Aider's repo map), Aider-style
 //  symbol ranking, a token-budgeted `--map` digest, and a single `--any`
 //  router (file → symbol → feature → live git-grep) — wired into the agent
 //  loop via a post-commit auto-refresh + a PreToolUse hook.

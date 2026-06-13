@@ -1,19 +1,24 @@
-agentmap — NOTICE
-=================
+agentmap — Credits & attribution
+================================
 
 agentmap is copyright 2026 Raymond Surya Chin and contributors,
 licensed under the MIT License (see LICENSE).
 
 -------------------------------------------------------------------------------
-Third-party attribution
+Algorithm credit
 -------------------------------------------------------------------------------
 
-The repo-map ranking algorithm in agentmap.mjs — specifically the PageRank-based
-importance scoring and identifier-graph symbol ranking — is ported from Aider
+agentmap's repo-map ranking — personalized PageRank importance scoring and the
+identifier-graph symbol ranking — is an independent reimplementation, in
+JavaScript, of the approach introduced by Aider's repo map
 (https://github.com/Aider-AI/aider) by Paul Gauthier and contributors.
 
-Aider is licensed under the Apache License, Version 2.0. The full text of
-that license is in LICENSE-APACHE in this package.
+No Aider source code is copied or included here: PageRank is a public, textbook
+algorithm, agentmap implements it from scratch (a dependency-free power
+iteration in agentmap.mjs), and Aider itself relies on the networkx library
+rather than hand-written ranking code. This NOTICE is a courtesy credit to the
+project that pioneered applying that ranking approach to a coding-agent repo
+map — not a statement of derivative authorship.
 
-You may obtain a copy of the Apache License at:
-    http://www.apache.org/licenses/LICENSE-2.0
+Aider is licensed under the Apache License, Version 2.0
+(http://www.apache.org/licenses/LICENSE-2.0).
