@@ -30,16 +30,17 @@ Every task you hand a coding agent starts with the same hidden step — *find th
 Here's what that step costs **with vs without agentmap**, across **7 real agent tasks on 3 public
 repos**. Every figure is captured tool output, reproducible at pinned shas (`node benchmark/bench.mjs <repo>`):
 
-| The lookup an agent does before every change | [ai-chatbot](https://github.com/vercel/ai-chatbot) · 154f | [zod](https://github.com/colinhacks/zod) · 367f | [taxonomy](https://github.com/shadcn-ui/taxonomy) · 125f |
+| Lookup the agent runs first | [ai-chatbot](https://github.com/vercel/ai-chatbot) · 154f | [zod](https://github.com/colinhacks/zod) · 367f | [taxonomy](https://github.com/shadcn-ui/taxonomy) · 125f |
 |------|:--:|:--:|:--:|
-| **Map the whole repo** | 99.3% · **133× fewer** | 99.8% · **646× fewer** | 98.1% · 52× fewer |
-| **Blast radius** — what breaks if I touch X | 99.2% · 132× fewer | 98.8% · 84× fewer | 98.5% · 68× fewer |
-| **Reuse check** — does this already exist? | 99.9% · **776× fewer** | 97.4% · 39× fewer | 99.3% · 135× fewer |
+| **Map the whole repo** | 99.3% (133×) | 99.8% (646×) | 98.1% (52×) |
+| **Blast radius** | 99.2% (132×) | 98.8% (84×) | 98.5% (68×) |
+| **Reuse check** | 99.9% (776×) | 97.4% (39×) | 99.3% (135×) |
 | **Total — all 7 tasks** | **98.3%** | **99.2%** | **96.0%** |
 
-Overall that's **25–124× fewer tokens**, peaking at **646× on a whole-repo map** and **776× on a
-reuse-before-rebuild check** — the exact lookups an agent runs before every feature or bug fix.
-Every cell is a real captured number, not a projection.
+<sub>Each cell = **% fewer tokens** the agent burns vs reading raw files; `133×` = the naive way costs 133× more. *Blast radius* = what breaks if you touch a file · *Reuse check* = does it already exist before you build it.</sub>
+
+Overall: **25–124× fewer tokens**, peaking at **646×** on a whole-repo map and **776×** on a
+reuse-before-rebuild check — the exact lookups an agent runs before every feature or bug fix.
 
 **Speed:** a cold build (parse + PageRank + symbol graph) takes **~1.2s**; a warm cached query
 returns in **~0.1s** (the lazy-loaded query path added in 0.2.2) — so the agent has a ranked
