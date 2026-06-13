@@ -65,7 +65,7 @@ Run with no flag to build + print a one-line summary:
 
 ```
 $ node repomap.mjs
-repomap: 78 files | 3 features | top hub: app/bari/types.ts (deg 25, pr 0.148412)
+repomap: 154 files | 4 features | top hub: lib/utils.ts (deg 52, pr 0.105171)
 ```
 
 ---
@@ -88,34 +88,44 @@ Layers 1–3 read the cached structural map (fast, ranked). Layer 4 is a **live 
 via `git grep -F`, so raw strings, copy, Tailwind classes, and config values the structural
 graph never indexes still resolve instead of coming up empty.
 
-**File hit** (query resolved to a file → full block):
+**Symbol hit** (query resolved to a symbol → full block):
 
 ```
-$ node repomap.mjs --any validation
-[structure:file] lib/validation.ts  (pr 0.049669)
-exports (16): isPayloadTooLarge(FunctionDeclaration), isAllowedOrigin(FunctionDeclaration), …
-imports (0): —
-dependents (13): app/api/leads/route.ts, app/api/dashboard/login/route.ts, app/api/dashboard/logout/route.ts, …
+$ node repomap.mjs --any cn
+[structure] 1 symbol, 0 feature match for "cn"
+  lib/utils.ts → cn (FunctionDeclaration)
+```
+
+**Ambiguous file hit** (query matched multiple files → narrow it):
+
+```
+$ node repomap.mjs --any utils
+[structure] "utils" matched 3 files — narrow it:
+  lib/utils.ts
+  lib/db/utils.ts
+  tests/prompts/utils.ts
 ```
 
 **Content fallback** (no file/symbol/feature match → live git-grep):
 
 ```
-$ node repomap.mjs --any scoring
-[content] 28 lines:
-CLAUDE.md:82:    scoring.ts           — pillar scoring + recommendations [508 LOC]
-app/bari/bari-flow.tsx:12:import { computeStage1Result, computeStage2Result, getMultiSelect, getRecommendations } from "./scoring"
-app/bari/scoring.ts:1:// BARI v2 scoring engine.
-docs/ARCHITECTURE.md:55:- **`lib/wib.ts`** — Core business logic (Pillar reveal, scoring, report generation).
-…
+$ node repomap.mjs --any streamText
+[content] 13 lines:
+app/(chat)/api/chat/route.ts:8:  streamText,
+app/(chat)/api/chat/route.ts:194:        const result = streamText({
+artifacts/code/server.ts:1:import { streamText } from "ai";
+artifacts/code/server.ts:18:    const { fullStream } = streamText({
+artifacts/code/server.ts:40:    const { fullStream } = streamText({
+artifacts/sheet/server.ts:1:import { streamText } from "ai";
+artifacts/sheet/server.ts:11:    const { fullStream } = streamText({
 ```
 
 ---
 
 ## Commands
 
-Every snippet below is **verbatim output** from running agentmap against a real 78-file
-Next.js 16 + Supabase repo.
+Every snippet below is **verbatim output** from running agentmap against the public
+154-file Next.js repo [vercel/ai-chatbot](https://github.com/vercel/ai-chatbot) (sha 2becdb4).
 
 ### `--any <q>` — the router (file → symbol → feature → live content)
 
@@ -128,13 +138,17 @@ Find every exported symbol whose name contains the query. Use it before writing 
 or component to check what already exists.
 
 ```
-$ node repomap.mjs --find rateLimit
-find "rateLimit": 10 match
-  lib/ratelimit.ts → rateLimitGenerate (FunctionDeclaration)
-  lib/ratelimit.ts → rateLimitLeads (FunctionDeclaration)
-  lib/ratelimit.ts → rateLimitPdf (FunctionDeclaration)
-  lib/ratelimit.ts → rateLimitEmail (FunctionDeclaration)
-  lib/ratelimit.ts → RateLimitResult (TypeAliasDeclaration)
+$ node repomap.mjs --find Message
+find "Message": 55 match
+  hooks/use-messages.tsx → useMessages (FunctionDeclaration)
+  lib/errors.ts → getMessageByErrorCode (FunctionDeclaration)
+  lib/types.ts → messageMetadataSchema (VariableDeclaration)
+  lib/types.ts → MessageMetadata (TypeAliasDeclaration)
+  lib/types.ts → ChatMessage (TypeAliasDeclaration)
+  lib/utils.ts → convertToUIMessages (FunctionDeclaration)
+  lib/utils.ts → getTextFromMessage (FunctionDeclaration)
+  tests/helpers.ts → generateTestMessage (FunctionDeclaration)
+  app/(chat)/actions.ts → generateTitleFromUserMessage (FunctionDeclaration)
   …
 ```
 
@@ -145,16 +159,19 @@ relevance list (personalized PageRank on the bidirectional import graph) — the
 related to the target, transitively, not just its direct importers.
 
 ```
-$ node repomap.mjs --relates lib/validation.ts
-relates: lib/validation.ts  (pr 0.049669)
-exports (16): isPayloadTooLarge(FunctionDeclaration), …
+$ node repomap.mjs --relates lib/db/schema.ts
+relates: lib/db/schema.ts  (pr 0.073744)
+exports (14): user(VariableDeclaration), User(TypeAliasDeclaration), chat(VariableDeclaration), Chat(TypeAliasDeclaration), message(VariableDeclaration), DBMessage(TypeAliasDeclaration), …
 imports (0): —
-dependents (13): app/api/leads/route.ts, app/api/dashboard/login/route.ts, …
+dependents (21): hooks/use-active-chat.tsx, lib/types.ts, lib/utils.ts, components/chat/artifact.tsx, components/chat/message.tsx, lib/db/queries.ts, app/(chat)/api/chat/route.ts, …
 related (random-walk relevance):
-  lib/supabase.ts (0.0751)
-  lib/ratelimit.ts (0.0504)
-  app/bari/types.ts (0.0453)
-  app/api/report/generate/route.ts (0.0302)
+  lib/utils.ts (0.0476)
+  lib/types.ts (0.0376)
+  components/chat/artifact.tsx (0.0372)
+  components/chat/icons.tsx (0.0264)
+  components/chat/message.tsx (0.0237)
+  lib/db/queries.ts (0.0225)
+  app/(chat)/api/chat/route.ts (0.0218)
   …
 ```
 
@@ -164,23 +181,31 @@ Resolves a Next.js `app/`-router feature to its file set, plus the external file
 depend on it.
 
 ```
-$ node repomap.mjs --feature bari
-feature "bari": 21 files
-  app/bari/bari-flow.tsx
-  app/bari/scoring.ts
-  app/bari/types.ts
-  …
-external dependents (7): app/dashboard/(admin)/leads/[id]/page.tsx, lib/server/send-bari-report.tsx, app/api/report/generate/route.ts, …
+$ node repomap.mjs --feature api
+feature "api": 11 files
+  app/(chat)/api/chat/route.ts
+  app/(chat)/api/chat/schema.ts
+  app/(chat)/api/document/route.ts
+  app/(chat)/api/history/route.ts
+  app/(chat)/api/messages/route.ts
+  app/(chat)/api/models/route.ts
+  app/(chat)/api/suggestions/route.ts
+  app/(chat)/api/vote/route.ts
+  app/(auth)/api/auth/guest/route.ts
+  app/(chat)/api/files/upload/route.ts
+  app/(chat)/api/chat/[id]/stream/route.ts
+external dependents (0): —
 ```
 
 ### `--features` — list features by size
 
 ```
 $ node repomap.mjs --features
-features (3):
-  bari (21 files)
-  dashboard (15 files)
-  api (14 files)
+features (4):
+  api (11 files)
+  login (1 files)
+  register (1 files)
+  chat (1 files)
 ```
 
 ### `--hubs` — most important files (PageRank)
@@ -190,13 +215,15 @@ alongside).
 
 ```
 $ node repomap.mjs --hubs
-repomap: 78 files (sha 5fbc953)
+repomap: 154 files (sha 2becdb4)
 hubs (PageRank importance):
-  app/bari/types.ts (deg 25, pr 0.148412)
-  lib/validation.ts (deg 13, pr 0.049669)
-  lib/supabase.ts (deg 17, pr 0.04257)
-  lib/wib.ts (deg 8, pr 0.028502)
-  lib/ratelimit.ts (deg 9, pr 0.025418)
+  lib/utils.ts (deg 52, pr 0.105171)
+  lib/db/schema.ts (deg 21, pr 0.073744)
+  lib/types.ts (deg 23, pr 0.067589)
+  components/chat/artifact.tsx (deg 15, pr 0.036882)
+  components/chat/icons.tsx (deg 27, pr 0.035378)
+  lib/errors.ts (deg 9, pr 0.032787)
+  lib/db/queries.ts (deg 14, pr 0.030085)
   …
 ```
 
@@ -208,11 +235,16 @@ The most important individual symbols across the repo, ranked by the identifier 
 ```
 $ node repomap.mjs --symbols 10
 top 10 ranked symbols (Aider-style):
-  0.034335  app/bari/types.ts → LocaleString (TypeAliasDeclaration)
-  0.027014  lib/supabase.ts → getSupabaseAdmin (FunctionDeclaration)
-  0.02365   app/bari/types.ts → Question (TypeAliasDeclaration)
-  0.015032  lib/events.ts → EventType (TypeAliasDeclaration)
-  …
+  0.109902  lib/utils.ts → cn (FunctionDeclaration)
+  0.036013  lib/types.ts → ChatMessage (TypeAliasDeclaration)
+  0.025686  components/chat/artifact.tsx → ArtifactKind (TypeAliasDeclaration)
+  0.022461  lib/errors.ts → ChatbotError (ClassDeclaration)
+  0.021068  lib/types.ts → CustomUIDataTypes (TypeAliasDeclaration)
+  0.020872  lib/db/schema.ts → Document (TypeAliasDeclaration)
+  0.020555  components/ai-elements/suggestion.tsx → Suggestion (VariableDeclaration)
+  0.020555  lib/db/schema.ts → Suggestion (TypeAliasDeclaration)
+  0.018124  lib/db/schema.ts → DBMessage (TypeAliasDeclaration)
+  0.015034  lib/errors.ts → ErrorCode (TypeAliasDeclaration)
 ```
 
 ### `--map [--tokens N] [--focus <path>]` — token-budgeted ranked digest
@@ -223,37 +255,66 @@ personalizes the ranking toward a file you're working on.
 
 ```
 $ node repomap.mjs --map --tokens 400
-# repomap (78 files, sha 5fbc953) — focus: global, budget ~400 tok
+# repomap (154 files, sha 2becdb4) — focus: global, budget ~400 tok
 
-app/bari/types.ts:
-  LocaleString (TypeAliasDeclaration)
-  Question (TypeAliasDeclaration)
-  …
+lib/utils.ts:
+  cn (FunctionDeclaration)
+  generateUUID (FunctionDeclaration)
 
-lib/supabase.ts:
-  getSupabaseAdmin (FunctionDeclaration)
-  funnelStageRank (FunctionDeclaration)
-  …
+lib/types.ts:
+  ChatMessage (TypeAliasDeclaration)
+  CustomUIDataTypes (TypeAliasDeclaration)
+  ChatTools (TypeAliasDeclaration)
+  Attachment (TypeAliasDeclaration)
 
-# ~387 tokens (33 files shown)
+components/chat/artifact.tsx:
+  ArtifactKind (TypeAliasDeclaration)
+  UIArtifact (TypeAliasDeclaration)
+  Artifact (VariableDeclaration)
+
+lib/errors.ts:
+  ChatbotError (ClassDeclaration)
+  ErrorCode (TypeAliasDeclaration)
+
+lib/db/schema.ts:
+  Document (TypeAliasDeclaration)
+  Suggestion (TypeAliasDeclaration)
+  DBMessage (TypeAliasDeclaration)
+
+# ~387 tokens (14 files shown)
 ```
 
-Focused on a working file — the ranking re-centers on what `scoring.ts` actually touches:
+Focused on a working file — the ranking re-centers on what `lib/db/queries.ts` actually touches:
 
 ```
-$ node repomap.mjs --map --focus app/bari/scoring.ts --tokens 350
-# repomap (78 files, sha 5fbc953) — focus: app/bari/scoring.ts, budget ~350 tok
+$ node repomap.mjs --map --focus lib/db/queries.ts --tokens 350
+# repomap (154 files, sha 2becdb4) — focus: lib/db/queries.ts, budget ~350 tok
 
-app/bari/types.ts:
-  Question (TypeAliasDeclaration)
-  FullPillarScore (TypeAliasDeclaration)
-  …
-app/bari/questions.ts:
-  ALL_STAGE1_QUESTIONS (VariableDeclaration)
-  QUESTIONS (VariableDeclaration)
-  …
+lib/utils.ts:
+  cn (FunctionDeclaration)
+  generateUUID (FunctionDeclaration)
+  getDocumentTimestampByIndex (FunctionDeclaration)
+  fetcher (VariableDeclaration)
+  getTextFromMessage (FunctionDeclaration)
+  convertToUIMessages (FunctionDeclaration)
+  fetchWithErrorHandlers (FunctionDeclaration)
+  sanitizeText (FunctionDeclaration)
 
-# ~303 tokens (41 files shown)
+lib/db/schema.ts:
+  DBMessage (TypeAliasDeclaration)
+  Suggestion (TypeAliasDeclaration)
+  Document (TypeAliasDeclaration)
+  Chat (TypeAliasDeclaration)
+  User (TypeAliasDeclaration)
+  chat (VariableDeclaration)
+  document (VariableDeclaration)
+  message (VariableDeclaration)
+
+lib/errors.ts:
+  ChatbotError (ClassDeclaration)
+  ErrorCode (TypeAliasDeclaration)
+
+# ~324 tokens (8 files shown)
 ```
 
 ### `--print` — full map as JSON
@@ -263,7 +324,7 @@ for piping into other tools.
 
 ```
 $ node repomap.mjs --print | jq '.hubs[0]'
-"app/bari/types.ts (deg 25, pr 0.148412)"
+"lib/utils.ts (deg 52, pr 0.105171)"
 ```
 
 ---
@@ -346,16 +407,17 @@ Honesty first — this is deliberately a small, sharp tool, not a universal code
 
 ## Benchmark
 
-Against a real **78-file Next.js 16 + Supabase repo**:
+Against the public **154-file Next.js repo (vercel/ai-chatbot, sha 2becdb4)**:
 
-- `agentmap --map` digest: **~891 tokens** vs. **~182,200 tokens** to dump the same source
-  → **99.5% context reduction**.
+- **70.3% fewer tokens across 3 scenarios (5598 → 1664 tokens)**:
+  - **A. Understand file deps** (`lib/utils.ts`): baseline 583 tok → agentmap 517 tok (11.3% saved)
+  - **B. Find symbol** (`ChatMessage`): baseline 1950 tok → agentmap 20 tok (99% saved)
+  - **C. Repo overview** (tree + 3 hub files): baseline 3065 tok → agentmap 1127 tok (63.2% saved)
 - Cold build (parse + PageRank + symbol graph): **~1.2s**. Warm cached query (`--hubs`,
   clean tree): **~0.2s**.
 
-Caveat: that 99.5% is *ranked-digest vs. full-source-dump* (the worst-case baseline), and
-it measures context efficiency, **not** end-to-end retrieval accuracy — there's no
-"did the agent fix the bug faster" eval yet.
+Caveat: these numbers measure context efficiency (tokens sent to the model per task), **not**
+end-to-end retrieval accuracy — there's no "did the agent fix the bug faster" eval yet.
 
 Full methodology, commands, and caveats: **[`./benchmark/RESULTS.md`](./benchmark/RESULTS.md)**.
 
