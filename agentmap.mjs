@@ -91,6 +91,7 @@ const dirtyCount = () =>
     return /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|vue)$/.test(p);
   }).length;
 // A zero-dependency pre-tokenizer chunker that closely approximates BPE token volume (like cl100k_base).
+// Ported from OpenAI's tiktoken: https://github.com/openai/tiktoken/blob/main/tiktoken_ext/openai_public.py
 // Evaluates at roughly O(n) per string and captures the true density of dense data/arrays unlike chars/4.
 const CL100K_REGEX = /'(?:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+/gui;
 const tokEst = (s) => {
