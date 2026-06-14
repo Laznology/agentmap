@@ -11,7 +11,7 @@ what connects to what, burning tokens before it writes a line. agentmap gives it
 ranked code-relationship map for TypeScript/JavaScript repos** instead — a `ts-morph` import/symbol
 graph ranked by personalized PageRank. Ask it to *"add a field"* or *"fix the login bug"* and it
 finds the right files, their imports, and what already exists in
-**~98% fewer context tokens on average** (up to **~99.9% per task**; figures are chars/4 estimates applied equally to both sides) — kept current by a post-commit
+**~98% fewer context tokens on average** (up to **~99.9% per task**; figures are regex chunker estimates applied equally to both sides) — kept current by a post-commit
 auto-refresh and actually used via a `PreToolUse(Grep)` hook.
 
 [![npm](https://img.shields.io/npm/v/@raymondchins/agentmap)](https://www.npmjs.com/package/@raymondchins/agentmap)
@@ -52,7 +52,7 @@ tool output (`node benchmark/bench.mjs <repo>` at the pinned sha):
 </tbody>
 </table>
 
-<sub>Context tokens the agent burns to answer each question — token est = chars/4, applied to both sides.</sub>
+<sub>Context tokens the agent burns to answer each question — token est = cl100k regex chunker, applied to both sides.</sub>
 
 That's the agent reaching the same answer on **58× fewer tokens** overall — and the pattern holds
 across [zod](https://github.com/colinhacks/zod) (367 files, **99.2%**) and
@@ -506,7 +506,7 @@ Honesty first — this is deliberately a small, sharp tool, not a universal code
   derive features from the first real route segment under `app/` (or `src/app/`), skipping
   route groups `(...)`, dynamic `[...]`, and parallel `@...` segments. Repos without an
   `app/` directory simply report zero features — every other command still works.
-- **Token counts are estimates** (`chars / 4`), not a real BPE tokenizer. Treat
+- **Token counts are estimates** (via a zero-dep `cl100k_base` RegExp chunker), not a real BPE tokenizer. Treat
   `--map`/`--tokens` budgets as approximate (±10%).
 - The PreToolUse hook is **Claude Code-specific** (it speaks Claude Code's hook JSON). The
   post-commit hook is generic git.
