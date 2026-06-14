@@ -90,7 +90,14 @@ const dirtyCount = () =>
     p = p.replace(/^"|"$/g, "");                         // unquote space/special paths
     return /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|vue)$/.test(p);
   }).length;
-const tokEst = (s) => Math.ceil((s || "").length / 4); // rough chars/4 estimate
+// A zero-dependency pre-tokenizer chunker that closely approximates BPE token volume (like cl100k_base).
+// Evaluates at roughly O(n) per string and captures the true density of dense data/arrays unlike chars/4.
+const CL100K_REGEX = /'(?:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+/gui;
+const tokEst = (s) => {
+  if (!s) return 0;
+  const chunks = s.match(CL100K_REGEX);
+  return chunks ? Math.ceil(chunks.length * 1.12) : 0;
+};
 
 // get-or-init a Map value (readable replacement for the dense `m.get(k) ?? m.set(...)` idiom).
 const getOrSet = (m, k, make) => { let v = m.get(k); if (v === undefined) { v = make(); m.set(k, v); } return v; };
